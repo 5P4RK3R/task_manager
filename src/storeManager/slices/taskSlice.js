@@ -21,7 +21,7 @@ export const taskSlice = createSlice({
       state.users = payload;
     },
     getTasks: (state, { payload }) => {
-      state.tasks = payload;
+      state.tasks = payload.length ? payload : [task];
     },
     getTask: (state, { payload }) => {
       state.taskDetail[payload.name] = payload.value;

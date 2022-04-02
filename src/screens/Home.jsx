@@ -13,9 +13,7 @@ const Home = ({ auth }) => {
   const dispatch = useDispatch();
   useEffect(() => {
     if (auth.companyId && auth.authToken) {
-//       if(!tasks.length) {
       dispatch(fetchTasks(auth.companyId, auth.authToken));
-//       }
       dispatch(fetchUsers(auth.companyId, auth.authToken));
     }
 
