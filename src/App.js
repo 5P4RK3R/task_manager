@@ -3,16 +3,25 @@ import Home from "./screens/Home";
 import "./App.css";
 import { useSelector, useDispatch } from "react-redux";
 import { selectAuth, fetchAuth } from "./storeManager/slices/authSlice";
+import { useQuery } from "react-query";
 const App = () => {
-  const auth = useSelector(selectAuth);
-  const dispatch = useDispatch();
+  // const auth = useSelector(selectAuth);
+  const auth = useQuery('auth',fetchAuth())
+  // const dispatch = useDispatch();
   useEffect(() => {
-    dispatch(fetchAuth());
+    // dispatch(fetchAuth());
     return () => {};
   }, []);
+
+  
   return (
     <div className="App">
-      <Home auth={auth} />
+      {
+        {
+          loading: <p>loading ...</p>,
+          success: <Home auth={auth} />,
+        }[auth.status]
+      }
     </div>
   );
 };

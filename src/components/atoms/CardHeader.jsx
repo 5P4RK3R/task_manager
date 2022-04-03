@@ -2,20 +2,20 @@ import React from "react";
 
 import { useSelector, useDispatch } from "react-redux";
 import {
-  incrementTasks,
+  incrementTask,
   selectTask,
 } from "../../storeManager/slices/taskSlice";
-const CardHeader = ({ id }) => {
+const CardHeader = () => {
   const task = useSelector(selectTask);
   const dispatch = useDispatch();
   const addtask = () => {
-    dispatch(incrementTasks());
+    dispatch(incrementTask());
   };
   return (
     <div className=" bg-slate-200	justify-evenly shadow-md border-solid border-2 w-96 flex flex-row space-x-4">
       <div className="flex flex-row  w-64">
         <h2 className="mx-4">Task </h2>
-        <p>{id} </p>
+        {/* <p>{id} </p> */}
       </div>
       <div className="flex justify-end w-64" onClick={addtask}>
         <svg

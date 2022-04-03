@@ -5,90 +5,92 @@ const task = {
   task_date: "",
   task_time: "",
   assigned_user: "",
+  id: Math.random()
 };
 const initialState = {
   taskDetail: task,
-  tasks: [task],
-
-  users: [],
+  tasks: [task]
 };
 
 export const taskSlice = createSlice({
   name: "task",
   initialState,
   reducers: {
-    getUsers: (state, { payload }) => {
-      state.users = payload;
-    },
     getTasks: (state, { payload }) => {
-      state.tasks = payload;
+      state.tasks = payload 
+      // state.tasks = payload.length ? payload : [taskDetail];
     },
-    getTask: (state, { payload }) => {
-      state.taskDetail[payload.name] = payload.value;
-      if (payload.id.length > 1) {
-        let index = state.tasks.findIndex((v) => v.id === payload?.id);
-        state.tasks[index][payload.name] = payload.value;
-      } else {
-        state.tasks[payload.id][payload.name] = payload.value;
-      }
+    // getTask: (state, { payload }) => {
+    //   state.taskDetail[payload.name] = payload.value;
+    //   if (payload.id.length > 1) {
+    //     let index = state.tasks.findIndex((v) => v.id === payload?.id);
+    //     state.tasks[index][payload.name] = payload.value;
+    //   } else {
+    //     state.tasks[payload.id][payload.name] = payload.value;
+    //   }
+    // },
+    setTask:(state, { payload }) => {
+      let index = state.tasks.findIndex((v) => v.id === payload?.id);
+      state.tasks[index][payload.name] = payload.value;
     },
     addTasks: (state, { payload }) => {
       state.tasks = [payload];
     },
     deleteTask: (state, { payload }) => {
-      let index = state.tasks.findIndex((v) => v.id === payload?.id);
-      state.tasks.splice(index ? index : payload.id, 1);
-      state.tasks = state.tasks.length ? state.tasks : [task];
+      
+      const filteredTask = state.tasks.filter((task)=> task.id !== payload.id)
+      state.tasks = filteredTask.length ? filteredTask : [task];
     },
-    incrementTasks: (state, { payload }) => {
+    incrementTask: (state, { payload }) => {
       state.tasks = [...state.tasks, task];
+    },
+    decrementTask : (state, { payload }) => {
+      const filteredTask = state.tasks.filter((task)=> task.id !== payload.id)
+      state.tasks = filteredTask
     },
   },
 });
 
 export const {
-  getTasks,
   deleteTask,
   addTasks,
-  getUsers,
   getTask,
-  incrementTasks,
+  getTasks,
+  setTask,
+  incrementTask,
+  decrementTask
 } = taskSlice.actions;
 
 export const selectTask = (state) => state.task;
 
-export const fetchUsers = (companyId, token) => async (dispatch) => {
-  const header = { Authorization: `Bearer ${token}` };
+export const fetchUsers = ({companyId,authToken }) => async (dispatch) => {
+  const header = { Authorization: `Bearer ${authToken}` };
   const data = await axios.get(
     `https://stage.api.sloovi.com/team?product=outreach&company_id=${companyId}`,
     { headers: header }
   );
-  dispatch(getUsers(data.data.results.data));
+  return data.data.results.data
 };
-export const fetchTasks = (companyId, token) => async (dispatch) => {
-  const header = { Authorization: `Bearer ${token}` };
+export const fetchTasks = ({companyId, authToken}) => async (dispatch) => {
+  const header = { Authorization: `Bearer ${authToken}` };
   const data = await axios.get(
     `https://stage.api.sloovi.com/task/lead_cb11a91b1bff4c42806b5c8dea51425d?company_id=${companyId}`,
     { headers: header }
   );
-  dispatch(getTasks(data.data.results));
+  return data.data.results;
 };
-export const setTask =
-  ({ name, value }, id) =>
-  async (dispatch) => {
-    dispatch(getTask({ name, value, id }));
-  };
+
 export const removeTask = (auth, id) => async (dispatch) => {
   const header = { Authorization: `Bearer ${auth.authToken}` };
   const data = await axios.delete(
     ` https://stage.api.sloovi.com/task/lead_cb11a91b1bff4c42806b5c8dea51425d/${id}?company_id=${auth.companyId}`,
     { headers: header }
   );
-  dispatch(deleteTask(id));
-  dispatch(fetchTasks(auth.companyId, auth.authToken));
+  // dispatch(deleteTask(id));
+  // dispatch(fetchTasks(auth));
 };
 
-export const addTask = (companyId, token, task) => async (dispatch) => {
+export const addTask = ({companyId, authToken}, task) => async (dispatch) => {
   var taskTime = null; // split it at the colons
 
   // minutes are worth 60 seconds. Hours are worth 60 minutes.
@@ -108,16 +110,17 @@ export const addTask = (companyId, token, task) => async (dispatch) => {
     task_msg: task.task_msg,
   };
 
-  const header = { Authorization: `Bearer ${token}` };
+  const header = { Authorization: `Bearer ${authToken}` };
   const data = await axios.post(
     `https://stage.api.sloovi.com/task/lead_cb11a91b1bff4c42806b5c8dea51425d?company_id=${companyId}`,
     body,
     { headers: header }
   );
-  dispatch(addTasks(data.data.results));
-  dispatch(fetchTasks(companyId, token));
+  return data.data.results;
+  // dispatch(addTasks(data.data.results));
+  // dispatch(fetchTasks({companyId, authToken}));
 };
-export const updateTask = (companyId, token, task) => async (dispatch) => {
+export const updateTask = ({companyId, authToken}, task) => async (dispatch) => {
   var taskTime = null; // split it at the colons
 
   // minutes are worth 60 seconds. Hours are worth 60 minutes.
@@ -138,14 +141,14 @@ export const updateTask = (companyId, token, task) => async (dispatch) => {
     task_msg: task.task_msg,
   };
 
-  const header = { Authorization: `Bearer ${token}` };
+  const header = { Authorization: `Bearer ${authToken}` };
   const data = await axios.put(
     `https://stage.api.sloovi.com/task/lead_cb11a91b1bff4c42806b5c8dea51425d/${task.id}?company_id=${companyId}`,
     body,
     { headers: header }
   );
-
-  dispatch(addTasks(data.data.results));
-  dispatch(fetchTasks(companyId, token));
+    return data.data.results;
+  // dispatch(addTasks(data.data.results));
+  // dispatch(fetchTasks({companyId, authToken}));
 };
 export default taskSlice.reducer;

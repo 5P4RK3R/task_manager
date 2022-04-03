@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import CardHeader from "../atoms/CardHeader";
 import Input from "../atoms/Input";
 import Select from "../atoms/Select";
@@ -12,40 +12,69 @@ import {
   removeTask,
   updateTask,
   deleteTask,
+  decrementTask,
+  fetchUsers
 } from "../../storeManager/slices/taskSlice";
 import { sectohrs } from "../../utils/sectohrs";
 import Update from "../atoms/Update";
-const Task = ({ users, taskDetail, id, auth, index }) => {
-  const task = useSelector(selectTask);
+import { useQuery ,useMutation,useQueryClient } from "react-query";
+
+const Task = ({ taskInfo, auth }) => {
+  // const {tasks} = useSelector(selectTask);
   const dispatch = useDispatch();
-  const setTaskDetail = ({ target }) => {
-    dispatch(setTask(target, index));
+  const queryClient = useQueryClient();
+  const {status,data} = useQuery('users',fetchUsers(auth)) 
+  // useEffect(() => {
+  //   // dispatch(getTasks(data))
+  //   return () => {};
+  // }, [data]);
+  console.log(data)
+  const { mutate, isLoading } = useMutation(addTask, {
+    onSuccess: data => {
+      console.log(data);
+      const message = "success"
+      console.log(message)
+    },
+    onError: (err) => {
+      console.log(err)
+      // alert("there was an error")
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries('delete');
+    }
+  });
+  const setTaskDetail = ({ target:{name,value} }) => {
+    dispatch(setTask({name,value,id: taskInfo.id}));
   };
 
-  const toggleTask = () => {
-    dispatch(setTask({ name: "modified", value: null }, id));
+  const updateTask = () => {
+    dispatch(setTask({ name: "modified", value: null ,id: taskInfo.id}));
+
   };
   const saveTask = () => {
-    taskDetail.modified_by
-      ? dispatch(updateTask(auth.companyId, auth.authToken, taskDetail))
-      : dispatch(addTask(auth.companyId, auth.authToken, taskDetail));
+    mutate(auth, taskInfo)
+    // taskInfo.modified_by
+    //   ? dispatch(updateTask(auth, taskInfo))
+    //   : dispatch(addTask(auth, taskInfo));
   };
 
   const deleteTask = () => {
-    dispatch(removeTask(auth, id));
+    // mutate(auth, taskInfo.id);
   };
 
   const cancelTask = () => {
-    Object.values(taskDetail).filter(Boolean).length
-      ? null
-      : dispatch(deleteTask(id));
-    dispatch(setTask({ name: "modified", value: true }, id));
+    const {id, ...task} = taskInfo;
+    // Object.values(task).filter(Boolean).length
+    //   ? null
+    //   : dispatch(deleteTask(taskInfo.id));
+    Object.values(task).filter(Boolean).length ? dispatch(setTask({ name: "modified", value: true ,id: taskInfo.id}, )) : dispatch(decrementTask({id:taskInfo.id}))
+    // dispatch(setTask({ name: "modified", value: true },taskInfo.id));
   };
 
   return (
     <div className="flex flex-col m-4 shadow-md border-solid border-2 w-96">
-      <CardHeader id={index} />
-      {!taskDetail.modified ? (
+      <CardHeader />
+      {!taskInfo.modified ? (
         <div className="bg-sky-100">
           <div className=" my-4 ">
             <Input
@@ -53,7 +82,7 @@ const Task = ({ users, taskDetail, id, auth, index }) => {
               type="text"
               label=" Task Description"
               event={setTaskDetail}
-              value={taskDetail.task_msg}
+              value={taskInfo.task_msg}
             />
             <div className="flex flex-row my-4 justify-between">
               <Input
@@ -61,7 +90,7 @@ const Task = ({ users, taskDetail, id, auth, index }) => {
                 type="date"
                 label="Date"
                 event={setTaskDetail}
-                value={taskDetail.task_date}
+                value={taskInfo.task_date}
               />
               <Input
                 id="task_time"
@@ -69,9 +98,9 @@ const Task = ({ users, taskDetail, id, auth, index }) => {
                 label="Time"
                 event={setTaskDetail}
                 value={
-                  Number.isInteger(taskDetail.task_time)
-                    ? sectohrs(taskDetail.task_time)
-                    : taskDetail.task_time
+                  Number.isInteger(taskInfo.task_time)
+                    ? sectohrs(taskInfo.task_time)
+                    : taskInfo.task_time
                 }
               />
             </div>
@@ -79,13 +108,13 @@ const Task = ({ users, taskDetail, id, auth, index }) => {
               id="assigned_user"
               type="time"
               label="Assign Users"
-              value={taskDetail.assigned_user}
+              value={taskInfo.assigned_user}
               event={setTaskDetail}
-              options={users}
+              options={data}
             />
           </div>
           <div className="flex flex-row justify-evenly">
-            {taskDetail.modified_by ? <Trash event={deleteTask} /> : null}
+            {taskInfo.modified_by ? <Trash event={deleteTask} /> : null}
             <div className="flex">
               <Button event={cancelTask} bgColor="bg-white" text="Cancel" />
               <Button
@@ -99,17 +128,17 @@ const Task = ({ users, taskDetail, id, auth, index }) => {
         </div>
       ) : (
         <div className="flex flex-row items-center  p-4 w-96 bg-white justify-between">
-          {taskDetail.assigned_user_icon ? (
+          {taskInfo.assigned_user_icon ? (
             <img
               className="w-12 h-12 object-cover"
-              src={taskDetail.assigned_user_icon}
+              src={taskInfo.assigned_user_icon}
             />
           ) : null}
           <div className="flex flex-col">
-            <p>{taskDetail.assigned_user}</p>
-            <p>{sectohrs(taskDetail.task_time)}</p>
+            <p>{taskInfo.assigned_user}</p>
+            <p>{sectohrs(taskInfo.task_time)}</p>
           </div>
-          <Update event={toggleTask} />
+          <Update event={updateTask} />
         </div>
       )}
     </div>

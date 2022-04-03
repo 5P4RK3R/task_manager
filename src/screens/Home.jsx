@@ -1,37 +1,44 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Task from "../components/organisms/Task";
 
 import { useSelector, useDispatch } from "react-redux";
 import {
   selectTask,
   fetchTasks,
-  fetchUsers,
+  getTasks,
 } from "../storeManager/slices/taskSlice";
+
+import { useQuery  } from "react-query";
 const Home = ({ auth }) => {
-  const { users, tasks } = useSelector(selectTask);
+  const {company_id,token} = auth.data;
+  const authToken = {companyId:company_id,authToken:token};
+  const {status,data} = useQuery('tasks',fetchTasks(authToken))
+  const [task,setTask] = useState(data);
+  const { tasks } = useSelector(selectTask);
 
   const dispatch = useDispatch();
   useEffect(() => {
-    if (auth.companyId && auth.authToken) {
-//       if(!tasks.length) {
-      dispatch(fetchTasks(auth.companyId, auth.authToken));
-//       }
-      dispatch(fetchUsers(auth.companyId, auth.authToken));
-    }
-
+    dispatch(getTasks(data))
     return () => {};
-  }, [auth]);
+  }, [company_id,data]);
+
   return (
     <div className="container mx-auto">
-      {tasks.map((taskDetail, index) => (
-        <Task
-          users={users}
-          taskDetail={taskDetail}
-          index={index}
-          id={taskDetail.id}
-          auth={auth}
-        />
-      ))}
+      {
+        {
+          loading: <p>loading ...</p>,
+          success: <>
+            { tasks?.map((taskInfo, index) => (
+              <Task
+                taskInfo={taskInfo}
+                key={taskInfo.id}
+                auth={authToken}
+              />
+            )) }
+          
+          </>,
+        }[status]
+      }
     </div>
   );
 };

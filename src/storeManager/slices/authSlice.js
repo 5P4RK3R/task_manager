@@ -28,6 +28,7 @@ export const fetchAuth = () => async (dispatch) => {
   };
 
   const data = await axios.post(`https://stage.api.sloovi.com/login`, body);
+  return data.data.results;
   dispatch(getAuth(data.data.results));
 };
 export default authSlice.reducer;
