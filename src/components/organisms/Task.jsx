@@ -11,7 +11,6 @@ import {
   addTask,
   removeTask,
   updateTask,
-  deleteTask,
 } from "../../storeManager/slices/taskSlice";
 import { sectohrs } from "../../utils/sectohrs";
 import Update from "../atoms/Update";

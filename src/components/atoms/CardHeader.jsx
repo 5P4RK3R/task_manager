@@ -1,12 +1,8 @@
 import React from "react";
 
-import { useSelector, useDispatch } from "react-redux";
-import {
-  incrementTasks,
-  selectTask,
-} from "../../storeManager/slices/taskSlice";
+import { useDispatch } from "react-redux";
+import { incrementTasks } from "../../storeManager/slices/taskSlice";
 const CardHeader = ({ id }) => {
-  const task = useSelector(selectTask);
   const dispatch = useDispatch();
   const addtask = () => {
     dispatch(incrementTasks());
